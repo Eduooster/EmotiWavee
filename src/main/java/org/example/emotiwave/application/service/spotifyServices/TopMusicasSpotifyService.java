@@ -31,18 +31,17 @@ public class TopMusicasSpotifyService {
     private final MusicaMapper musicaMapper;
     private final SpotifyService spotifyService;
     private final GeniusLyricsService geniusLyricsService;
-    private final HuggingFaceZeroShotService huggingFaceZeroShotService;
     String SPOTIFY_TOP_TRACKS_URL = "https://api.spotify.com/v1/me/top/tracks?time_range=medium_term&limit=3";
     String SPOTIFY_ARTIST_URL = "https://api.spotify.com/v1/artists/";
     private UsuarioMusicaRepository usuarioMusicaRepository;
     Instant now = Instant.now();
 
-    public TopMusicasSpotifyService(MusicaRepository musicaRepository, MusicaMapper musicaMapper, SpotifyService spotifyService, GeniusLyricsService geniusLyricsService, HuggingFaceZeroShotService huggingFaceZeroShotService, UsuarioRepository usuarioRepository, SpotifyClient spotifyClient, UsuarioMusicaRepository usuarioMusicaRepository) {
+    public TopMusicasSpotifyService(MusicaRepository musicaRepository, MusicaMapper musicaMapper, SpotifyService spotifyService, GeniusLyricsService geniusLyricsService, UsuarioRepository usuarioRepository, SpotifyClient spotifyClient, UsuarioMusicaRepository usuarioMusicaRepository) {
         this.musicaRepository = musicaRepository;
         this.musicaMapper = musicaMapper;
         this.spotifyService = spotifyService;
         this.geniusLyricsService = geniusLyricsService;
-        this.huggingFaceZeroShotService = huggingFaceZeroShotService;
+
         this.usuarioMusicaRepository = usuarioMusicaRepository;
     }
 
@@ -76,26 +75,17 @@ public class TopMusicasSpotifyService {
     protected void converterTopMusicasParaEntidade(List<MusicaSimplesDto> topMusicas, Usuario usuario) {
         for(MusicaSimplesDto topMusicaDto : topMusicas) {
             if (this.musicaRepository.findBySpotifyTrackId(topMusicaDto.getSpotifyTrackId()) == null) {
-                try {
-                    Musica musicaEntity = this.musicaMapper.toEntity(topMusicaDto);
-                    String letra = this.geniusLyricsService.buscarLyrics(topMusicaDto.getArtista(), topMusicaDto.getTitulo());
-                    musicaEntity.setLetra(letra);
-                    musicaEntity.setSpotifyTrackId(topMusicaDto.getSpotifyTrackId());
-                    musicaEntity.setGenero(String.valueOf(topMusicaDto.getGenero()));
-                    this.musicaRepository.save(musicaEntity);
-                    AnaliseMusica analise = this.huggingFaceZeroShotService.analisarMusica(musicaEntity);
-                    analise.setMusica(musicaEntity);
-                    musicaEntity.setAnalise(analise);
-                    UsuarioMusica usuarioMusica = new UsuarioMusica();
-                    usuarioMusica.setMusica(musicaEntity);
-                    usuarioMusica.setUsuario(usuario);
-                    usuarioMusica.setFonte(FonteMusica.SPOTIFY);
-                    this.usuarioMusicaRepository.save(usuarioMusica);
-                } catch (IOException e) {
-                    PrintStream var10000 = System.err;
-                    String var10001 = topMusicaDto.getTitulo();
-                    var10000.println("Erro processando música " + var10001 + ": " + e.getMessage());
-                }
+                Musica musicaEntity = this.musicaMapper.toEntity(topMusicaDto);
+                String letra = this.geniusLyricsService.buscarLyrics(topMusicaDto.getArtista(), topMusicaDto.getTitulo());
+                musicaEntity.setLetra(letra);
+                musicaEntity.setSpotifyTrackId(topMusicaDto.getSpotifyTrackId());
+                musicaEntity.setGenero(String.valueOf(topMusicaDto.getGenero()));
+                musicaRepository.save(musicaEntity);
+                UsuarioMusica usuarioMusica = new UsuarioMusica();
+                usuarioMusica.setMusica(musicaEntity);
+                usuarioMusica.setUsuario(usuario);
+                usuarioMusica.setFonte(FonteMusica.SPOTIFY);
+                this.usuarioMusicaRepository.save(usuarioMusica);
             }
         }
 

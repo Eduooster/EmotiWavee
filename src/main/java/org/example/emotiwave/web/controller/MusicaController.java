@@ -5,16 +5,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.emotiwave.application.dto.in.MusicaSimplesDto;
+import org.example.emotiwave.application.service.AnaliseMusicaService;
 import org.example.emotiwave.application.service.MusicaService;
 import org.example.emotiwave.domain.entities.Musica;
+import org.example.emotiwave.domain.entities.Usuario;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping({"/musicas"})
@@ -24,9 +24,17 @@ import org.springframework.web.bind.annotation.RestController;
 )
 public class MusicaController {
     private final MusicaService musicaService;
+    private final AnaliseMusicaService analiseMusicaService;
 
-    public MusicaController(MusicaService musicaService) {
+    public MusicaController(MusicaService musicaService, AnaliseMusicaService analiseMusicaService) {
         this.musicaService = musicaService;
+        this.analiseMusicaService = analiseMusicaService;
+    }
+
+    @PatchMapping("/analisar")
+    public ResponseEntity analise( Musica musica, @AuthenticationPrincipal Usuario usuario) {
+            analiseMusicaService.analisarMusicas(usuario);
+            return ResponseEntity.noContent().build();
     }
 
     @Operation(

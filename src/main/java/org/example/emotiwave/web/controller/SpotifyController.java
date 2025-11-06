@@ -54,6 +54,7 @@ public class SpotifyController {
     @GetMapping({"/callback"})
     public ResponseEntity<?> spotifyCallback(@RequestParam("code") String code, @RequestParam("state") String jwt) {
         Usuario usuario = this.tokenService.getUsuarioFromToken(jwt);
+        System.out.println(code);
         this.spotifyService.exchangeCodeForTokens(code, usuario);
         return ResponseEntity.ok(code);
     }

@@ -30,7 +30,7 @@ public class HuggingFaceZeroShotService {
         analise.setScore((BigDecimal)responseParseado.get(1));
         analise.setAnalisado_em(LocalDate.now());
         analise.setMusica(musica);
-        this.analiseMusicaRepository.save(analise);
+
         return analise;
     }
 }

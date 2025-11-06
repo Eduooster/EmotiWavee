@@ -26,6 +26,28 @@ public class AnaliseMusica {
     private String label;
     private BigDecimal score;
     private LocalDate analisado_em;
+    private String polaridade;
+    private String intensidade;
+
+
+    public String getPolaridade() {
+        return polaridade;
+    }
+
+    public void setPolaridade(String polaridade) {
+        this.polaridade = polaridade;
+    }
+
+    public String getIntensidade() {
+        return intensidade;
+    }
+
+    public void setIntensidade(String intensidade) {
+        this.intensidade = intensidade;
+    }
+
+
+
     @OneToOne
     @JoinColumn(
             name = "musica_id",

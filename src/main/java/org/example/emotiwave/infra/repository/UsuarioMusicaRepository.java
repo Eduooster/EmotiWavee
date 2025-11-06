@@ -3,6 +3,7 @@ package org.example.emotiwave.infra.repository;
 import java.time.LocalDate;
 import java.util.List;
 import org.example.emotiwave.application.dto.in.MusicaSimplesDto;
+import org.example.emotiwave.domain.entities.Musica;
 import org.example.emotiwave.domain.entities.Usuario;
 import org.example.emotiwave.domain.entities.UsuarioMusica;
 import org.springframework.data.domain.Page;
@@ -33,5 +34,12 @@ public interface UsuarioMusicaRepository extends JpaRepository<UsuarioMusica, Lo
     UsuarioMusica findByUsuarioIdAndMusicaSpotifyTrackId(Long usuarioId, String spotifyTrackId);
 
     List<UsuarioMusica> findByUsuarioAndOuvidaEm(Usuario usuario, LocalDate diaSolicitado);
+
+    @Query("""
+    SELECT um.musica 
+    FROM UsuarioMusica um 
+    WHERE um.usuario.id = :userId
+""")
+    List<Musica> findMusicasByUsuarioId(@Param("userId") Long userId);
 }
 

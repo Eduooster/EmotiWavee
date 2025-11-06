@@ -26,7 +26,7 @@ public class HuggingFaceZeroShotClient {
 
     public HuggingFaceZeroShotClient(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
-        this.webClient = WebClient.builder().baseUrl("https://api-inference.huggingface.co").defaultHeader("Authorization", new String[]{"Bearer " + this.huggingKey}).defaultHeader("Content-Type", new String[]{"application/json"}).exchangeStrategies(ExchangeStrategies.builder().codecs((configurer) -> configurer.defaultCodecs().maxInMemorySize(Integer.MAX_VALUE)).build()).build();
+        this.webClient = WebClient.builder().baseUrl("https://router.huggingface.co/hf-inference").defaultHeader("Authorization", new String[]{"Bearer " + this.huggingKey}).defaultHeader("Content-Type", new String[]{"application/json"}).exchangeStrategies(ExchangeStrategies.builder().codecs((configurer) -> configurer.defaultCodecs().maxInMemorySize(Integer.MAX_VALUE)).build()).build();
     }
 
     public ArrayList<Serializable> obterAnalise(Musica musica) throws IOException {
@@ -34,24 +34,22 @@ public class HuggingFaceZeroShotClient {
         return this.responseParseado(response);
     }
 
-    public ArrayList<Serializable> responseParseado(String responseBody) throws IOException, HuggingFaceException {
+    public ArrayList<Serializable> responseParseado(String responseBody) throws IOException {
+
         JsonNode root = this.objectMapper.readTree(responseBody);
-        String topLabel = null;
-        BigDecimal topScore = null;
-        if (root.has("labels") && root.has("scores")) {
-            JsonNode labels = root.get("labels");
-            JsonNode scores = root.get("scores");
-            if (labels.isArray() && labels.size() > 0) {
-                topLabel = labels.get(0).asText();
-                double topScoreDouble = scores.get(0).asDouble();
-                topScore = BigDecimal.valueOf(topScoreDouble);
-                return new ArrayList(Arrays.asList(topLabel, topScore));
-            }
-        } else {
-            System.err.println("Resposta inesperada da Hugging Face: " + responseBody);
+
+        if (root.isArray() && root.size() > 0) {
+            JsonNode primeiro = root.get(0);
+
+
+            String topLabel = primeiro.get("label").asText();
+            BigDecimal topScore = BigDecimal.valueOf(primeiro.get("score").asDouble());
+
+            return new ArrayList<>(Arrays.asList(topLabel, topScore));
         }
 
-        return null;
+        throw new HuggingFaceException("Resposta inesperada do hugging face");
+
     }
 
     public String enviarRequisicao(Musica musica) throws IOException {
@@ -61,7 +59,14 @@ public class HuggingFaceZeroShotClient {
 
     private String montarJson(Musica musica) throws IOException {
         ObjectNode bodyJson = this.objectMapper.createObjectNode();
-        bodyJson.put("inputs", musica.getLetra());
+
+        String letra = musica.getLetra();
+        if (letra.length() > 2000) {
+            letra = letra.substring(0, 2000);
+        }
+
+        System.out.println("analisando letra");
+        bodyJson.put("inputs", letra);
         ObjectNode parameters = this.objectMapper.createObjectNode();
         ArrayNode candidateLabels = this.objectMapper.createArrayNode();
         candidateLabels.add("happy");
