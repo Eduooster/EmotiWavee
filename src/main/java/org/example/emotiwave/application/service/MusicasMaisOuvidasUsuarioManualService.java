@@ -24,6 +24,6 @@ public class MusicasMaisOuvidasUsuarioManualService {
     }
 
     public List<MusicaSimplesDto> musicasRecemOuvidas(Pageable paginacao, Usuario usuario) {
-        return (List)this.usuarioMusicaRepository.findByUsuarioAndOuvidaEmAndSelecionadaTrue(usuario, LocalDate.now()).stream().map((um) -> new MusicaSimplesDto(um.getMusica().getTitulo(), um.getMusica().getArtista(), um.getMusica().getSpotifyTrackId(), um.getMusica().getArtistaId(), um.getMusica().getGenero())).collect(Collectors.toList());
+        return (List)this.usuarioMusicaRepository.findByUsuarioAndOuvidaEmAndSelecionadaTrue(usuario, LocalDate.now()).stream().map((um) -> new MusicaSimplesDto(um.getMusica().getTitulo(), um.getMusica().getArtista(), um.getMusica().getSpotifyTrackId(), um.getMusica().getArtistaId(), um.getMusica().getGenero(),um.getMusica().getUrlImg())).collect(Collectors.toList());
     }
 }

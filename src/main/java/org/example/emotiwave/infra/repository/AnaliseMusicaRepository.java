@@ -12,44 +12,112 @@ import java.time.LocalDate;
 @Repository
 public interface AnaliseMusicaRepository extends JpaRepository<AnaliseMusica, Long> {
 
+
     @Query(value = """
-    SELECT
-        (SELECT a2.polaridade FROM analise_musica a2
-         WHERE a2.usuario_id = :userId
-           AND (:inicio IS NULL OR a2.analisado_em >= :inicio)
-           AND (:fim IS NULL OR a2.analisado_em <= :fim)
-         GROUP BY a2.polaridade
-         ORDER BY COUNT(*) DESC
-         FETCH FIRST 1 ROWS ONLY) AS polaridade_predominante,
+        SELECT AVG(a.score)
+        FROM t_analise_musica a
+        JOIN t_musica m ON a.musica_id = m.id
+        JOIN t_usuario_musica um ON um.musica_id = m.id
+        WHERE um.usuario_id = :userId
+          AND (:inicio IS NULL OR um.ouvida_em >= :inicio)
+          AND (:fim IS NULL OR um.ouvida_em <= :fim)
+        """, nativeQuery = true)
+    Double buscarMediaScore(@Param("userId") Long userId,
+                            @Param("inicio") LocalDate inicio,
+                            @Param("fim") LocalDate fim);
 
-        AVG(a.score) AS mediaScore,
 
-        (SELECT a3.label FROM analise_musica a3
-         WHERE a3.usuario_id = :userId
-           AND (:inicio IS NULL OR a3.analisado_em >= :inicio)
-           AND (:fim IS NULL OR a3.analisado_em <= :fim)
-         GROUP BY a3.label
-         ORDER BY COUNT(*) DESC
-         FETCH FIRST 1 ROWS ONLY) AS sentimento_predominante,
+    @Query(value = """
+        SELECT COUNT(*)
+        FROM t_analise_musica a
+        JOIN t_musica m ON a.musica_id = m.id
+        JOIN t_usuario_musica um ON um.musica_id = m.id
+        WHERE um.usuario_id = :userId
+          AND (:inicio IS NULL OR um.ouvida_em >= :inicio)
+          AND (:fim IS NULL OR um.ouvida_em <= :fim)
+        """, nativeQuery = true)
+    Integer contarMusicas(@Param("userId") Long userId,
+                          @Param("inicio") LocalDate inicio,
+                          @Param("fim") LocalDate fim);
 
-        (SELECT a4.intensidade FROM analise_musica a4
-         WHERE a4.usuario_id = :userId
-           AND (:inicio IS NULL OR a4.analisado_em >= :inicio)
-           AND (:fim IS NULL OR a4.analisado_em <= :fim)
-         GROUP BY a4.intensidade
-         ORDER BY COUNT(*) DESC
-         FETCH FIRST 1 ROWS ONLY) AS intensidade_predominante,
 
-        COUNT(*) AS total_musicas_analisadas
-    FROM analise_musica a
-    WHERE a.usuario_id = :userId
-      AND (:inicio IS NULL OR a.analisado_em >= :inicio)
-      AND (:fim IS NULL OR a.analisado_em <= :fim)
-    """, nativeQuery = true)
-    EstatisticaResponse gerarEstatisticas(
-            @Param("userId") Long userId,
-            @Param("inicio") LocalDate inicio,
-            @Param("fim") LocalDate fim
-    );
+    @Query(value = """
+        SELECT polaridade FROM (
+            SELECT a2.polaridade, COUNT(*) AS freq
+            FROM t_analise_musica a2
+            JOIN t_musica m2 ON a2.musica_id = m2.id
+            JOIN t_usuario_musica um2 ON um2.musica_id = m2.id
+            WHERE um2.usuario_id = :userId
+              AND (:inicio IS NULL OR um2.ouvida_em >= :inicio)
+              AND (:fim IS NULL OR um2.ouvida_em <= :fim)
+            GROUP BY a2.polaridade
+            ORDER BY COUNT(*) DESC
+        ) WHERE ROWNUM = 1
+        """, nativeQuery = true)
+    String buscarPolaridadePredominante(@Param("userId") Long userId,
+                                        @Param("inicio") LocalDate inicio,
+                                        @Param("fim") LocalDate fim);
+
+
+    @Query(value = """
+        SELECT label FROM (
+            SELECT a3.label, COUNT(*) AS freq
+            FROM t_analise_musica a3
+            JOIN t_musica m3 ON a3.musica_id = m3.id
+            JOIN t_usuario_musica um3 ON um3.musica_id = m3.id
+            WHERE um3.usuario_id = :userId
+              AND (:inicio IS NULL OR um3.ouvida_em >= :inicio)
+              AND (:fim IS NULL OR um3.ouvida_em <= :fim)
+            GROUP BY a3.label
+            ORDER BY COUNT(*) DESC
+        ) WHERE ROWNUM = 1
+        """, nativeQuery = true)
+    String buscarSentimentoPredominante(@Param("userId") Long userId,
+                                        @Param("inicio") LocalDate inicio,
+                                        @Param("fim") LocalDate fim);
+
+
+    @Query(value = """
+        SELECT intensidade FROM (
+            SELECT a4.intensidade, COUNT(*) AS freq
+            FROM t_analise_musica a4
+            JOIN t_musica m4 ON a4.musica_id = m4.id
+            JOIN t_usuario_musica um4 ON um4.musica_id = m4.id
+            WHERE um4.usuario_id = :userId
+              AND (:inicio IS NULL OR um4.ouvida_em >= :inicio)
+              AND (:fim IS NULL OR um4.ouvida_em <= :fim)
+            GROUP BY a4.intensidade
+            ORDER BY COUNT(*) DESC
+        ) WHERE ROWNUM = 1
+        """, nativeQuery = true)
+    String buscarIntensidadePredominante(@Param("userId") Long userId,
+                                         @Param("inicio") LocalDate inicio,
+                                         @Param("fim") LocalDate fim);
+
+
+
+
+    @Query(value = """
+    SELECT 
+        ROUND(SUM(CASE WHEN a.polaridade = 'POSITIVO' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) AS percentualPositivo,
+        ROUND(SUM(CASE WHEN a.polaridade = 'NEGATIVO' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) AS percentualNegativo,
+        ROUND(SUM(CASE WHEN a.polaridade = 'NEUTRO' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) AS percentualNeutro
+    FROM t_analise_musica a
+    JOIN t_musica m ON a.musica_id = m.id
+    JOIN t_usuario_musica um ON um.musica_id = m.id
+    WHERE um.usuario_id = :userId
+      AND (:inicio IS NULL OR um.ouvida_em >= :inicio)
+      AND (:fim IS NULL OR um.ouvida_em <= :fim)
+""", nativeQuery = true)
+    EstatisticaResponse.PolaridadePercentual calcularPercentualPolaridade(@Param("userId") Long userId,
+                                                                          @Param("inicio") LocalDate inicio,
+                                                                          @Param("fim") LocalDate fim);
+
+
+
+
+
+
 }
+
 

@@ -20,7 +20,16 @@ public class EstatisticaService {
     }
 
     public EstatisticaResponse gerarEstatistica(Usuario usuario, LocalDate inicio, LocalDate fim) {
-        return analiseMusicaRepository.gerarEstatisticas(usuario.getId(),inicio,fim);
+        Double mediaScore = analiseMusicaRepository.buscarMediaScore(usuario.getId(), inicio, fim);
+        Integer total = analiseMusicaRepository.contarMusicas(usuario.getId(), inicio, fim);
+        String polaridade = analiseMusicaRepository.buscarPolaridadePredominante(usuario.getId(), inicio, fim);
+        String sentimento = analiseMusicaRepository.buscarSentimentoPredominante(usuario.getId(), inicio, fim);
+        String intensidade = analiseMusicaRepository.buscarIntensidadePredominante(usuario.getId(), inicio, fim);
+        EstatisticaResponse.PolaridadePercentual polaridade_predominante =analiseMusicaRepository.calcularPercentualPolaridade(usuario.getId(),inicio,fim);
+
+        return new EstatisticaResponse(polaridade, mediaScore, sentimento, intensidade, total,polaridade_predominante);
+
+
 
     }
 }

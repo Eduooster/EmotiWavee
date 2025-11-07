@@ -3,7 +3,12 @@ package org.example.emotiwave.application.service.usuarioMusicaServices;
 
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.example.emotiwave.application.dto.in.MusicaSelecionadaDto;
+import org.example.emotiwave.application.dto.in.MusicaSimplesDto;
+import org.example.emotiwave.application.mapper.MusicaMapper;
 import org.example.emotiwave.domain.entities.Musica;
 import org.example.emotiwave.domain.entities.Usuario;
 import org.example.emotiwave.domain.entities.UsuarioMusica;
@@ -16,10 +21,12 @@ import org.springframework.stereotype.Service;
 public class UsuarioMusicaService {
     private final UsuarioMusicaRepository usuarioMusicaRepository;
     private final MusicaRepository musicaRepository;
+    private final MusicaMapper musicaMapper;
 
-    public UsuarioMusicaService(UsuarioMusicaRepository usuarioMusicaRepository, MusicaRepository musicaRepository) {
+    public UsuarioMusicaService(UsuarioMusicaRepository usuarioMusicaRepository, MusicaRepository musicaRepository, MusicaMapper musicaMapper) {
         this.usuarioMusicaRepository = usuarioMusicaRepository;
         this.musicaRepository = musicaRepository;
+        this.musicaMapper = musicaMapper;
     }
 
     public void desvincular(Usuario usuario, String musicaId) {
@@ -41,6 +48,12 @@ public class UsuarioMusicaService {
         } else {
             usuarioMusicaRepo.setOuvidaEm(musicaSelecionadaDto.ouvidaHoje() ? LocalDate.now() : null);
         }
+
+    }
+
+    public List<MusicaSimplesDto> pegarMusicasRecentes(Usuario usuario) {
+        return usuarioMusicaRepository.findMusicasOuvidasHoje(usuario.getId(),LocalDate.now()).stream().map(
+                musicaMapper::toDto).collect(Collectors.toList());
 
     }
 }

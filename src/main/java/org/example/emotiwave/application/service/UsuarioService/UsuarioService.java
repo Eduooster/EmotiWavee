@@ -32,20 +32,7 @@ public class UsuarioService {
         this.usuarioMapper = usuarioMapper;
     }
 
-    public UsuarioDetailResponseDto cadastrar(UsuarioCreateRequestDto dto) {
 
-        Usuario usuario = usuarioMapper.toUsuario(dto);
-
-        usuarioRepository.findByEmail(usuario.getEmail())
-                .ifPresent(u -> { throw new UsuarioJaCadastrado("Email em uso!"); });
-
-
-        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
-        usuarioRepository.save(usuario);
-
-        return usuarioMapper.toUsuarioDetailsReponseDto(usuario);
-
-    }
 
     public Page<UsuarioDetailResponseDto> listar(Pageable pageable) {
         return usuarioRepository

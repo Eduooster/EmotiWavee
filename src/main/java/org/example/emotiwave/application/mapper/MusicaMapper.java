@@ -11,5 +11,7 @@ import org.mapstruct.Mapper;
 public interface MusicaMapper {
     Musica toEntity(MusicaSimplesDto musicaSimplesDto);
 
+    MusicaSimplesDto toDto(Musica musica);
+
     MusicasMaisOuvidasResponseDto toMusicaMaisOuvidasResponseDto(Musica musica);
 }

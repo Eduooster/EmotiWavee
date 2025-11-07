@@ -60,22 +60,8 @@ public class UsuarioController {
         this.estatisticaService = estatisticaService;
     }
 
-    @Operation(
-            summary = "Criar um novo usuário",
-            description = "Recebe os dados de cadastro do usuário e cria um novo registro no sistema. Retorna o usuário criado com o ID gerado."
-    )
-    @ApiResponse(
-            responseCode = "201",
-            description = "Usuário criado com sucesso"
-    )
-    @PostMapping
-    public ResponseEntity<UsuarioDetailResponseDto> criar(@RequestBody @Valid UsuarioCreateRequestDto dto, UriComponentsBuilder uriBuilder) {
-        UsuarioDetailResponseDto cadastroNovoUsuario = usuarioService.cadastrar(dto);
-        URI uri = uriBuilder.path("/usuario/{id}").buildAndExpand(new Object[]{cadastroNovoUsuario.id()}).toUri();
-        return ResponseEntity.created(uri).body(cadastroNovoUsuario);
-    }
 
-    @GetMapping("/usuarios/estatisticas")
+    @GetMapping("/estatisticas")
     public ResponseEntity<EstatisticaResponse> getEstatisticas(
             @AuthenticationPrincipal Usuario usuario,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
@@ -84,15 +70,7 @@ public class UsuarioController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping({"/recomendacoes"})
-    public ResponseEntity getRecomendacoesMusicasHumor(@AuthenticationPrincipal Usuario usuario) {
-        return ResponseEntity.ok().build();
-    }
 
-    @GetMapping({"/humor-semanal"})
-    public ResponseEntity getHumorSemanal(@AuthenticationPrincipal Usuario usuario) {
-        return ResponseEntity.ok().build();
-    }
 
 //    @Operation(
 //            summary = "Listar usuários",

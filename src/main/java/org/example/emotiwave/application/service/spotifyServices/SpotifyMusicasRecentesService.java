@@ -17,6 +17,7 @@ import org.example.emotiwave.domain.exceptions.LetraMusicaNaoEncontradaGenius;
 import org.example.emotiwave.infra.client.GeniusLyricsClient;
 import org.example.emotiwave.infra.client.HuggingFaceZeroShotClient;
 
+import org.example.emotiwave.infra.repository.AnaliseMusicaRepository;
 import org.example.emotiwave.infra.repository.MusicaRepository;
 import org.example.emotiwave.infra.repository.UsuarioMusicaRepository;
 
@@ -25,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Collections;
@@ -42,12 +44,13 @@ public class SpotifyMusicasRecentesService {
     private final GeniusLyricsClient geniusLyricsClient;
 
     private final HuggingFaceZeroShotService huggingFaceZeroShotService;
+    private final AnaliseMusicaRepository analiseMusicaRepository;
     String SPOTIFY_URL_GENERO = "https://api.spotify.com/v1/artists/";
-    String SPOTIFY_URL_RECENTLY_PLAYED = "https://api.spotify.com/v1/me/player/recently-played?limit=3";
+    String SPOTIFY_URL_RECENTLY_PLAYED = "https://api.spotify.com/v1/me/player/recently-played?limit=5";
 
 
 
-    public SpotifyMusicasRecentesService( MusicaRepository musicaRepository, SpotifyService spotifyService, UsuarioMusicaRepository usuarioMusicaRepository, MusicaMapper musicaMapper, GeniusLyricsClient geniusLyricsClient, HuggingFaceZeroShotService huggingFaceZeroShotService) {
+    public SpotifyMusicasRecentesService(MusicaRepository musicaRepository, SpotifyService spotifyService, UsuarioMusicaRepository usuarioMusicaRepository, MusicaMapper musicaMapper, GeniusLyricsClient geniusLyricsClient, HuggingFaceZeroShotService huggingFaceZeroShotService, AnaliseMusicaRepository analiseMusicaRepository) {
 
         this.musicaRepository = musicaRepository;
         this.spotifyService = spotifyService;
@@ -55,20 +58,23 @@ public class SpotifyMusicasRecentesService {
         this.musicaMapper = musicaMapper;
         this.geniusLyricsClient = geniusLyricsClient;
         this.huggingFaceZeroShotService = huggingFaceZeroShotService;
-
+        this.analiseMusicaRepository = analiseMusicaRepository;
     }
 
 
     public ResponseEntity<List<MusicaSimplesDto>> buscarMusicasOuvidasRecentes(Usuario usuario) throws IOException, InterruptedException {
         spotifyService.verificarExpiracaoToken(usuario);
 
-        Long timeStampDoDia = LocalDate.now().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli();
+        long now = Instant.now().toEpochMilli(); // timestamp atual em ms
+        long twentyFourHoursAgo = now - (24 * 60 * 60 * 1000);
+
+
 
         MusicasDoDiaSpotifyDto musicasUsuarioSpotifyDto = spotifyService.enviarRequisicaoSpotifyUtils(usuario,
                 SPOTIFY_URL_RECENTLY_PLAYED,
                 new ParameterizedTypeReference<>() {
                 },
-                timeStampDoDia);
+                twentyFourHoursAgo);
 
 
         List<MusicaSimplesDto> musicaSimplesDto =converterMusicasDiaParaDto (musicasUsuarioSpotifyDto,usuario);
@@ -100,13 +106,11 @@ public class SpotifyMusicasRecentesService {
                     String artistaId = item.getTrack().getArtists().getFirst().getId();
                     String spotifyId = item.getTrack().getId();
                     String generoString = (genero != null && !genero.genres().isEmpty())
-                            ? genero.genres().get(0)   // pega o primeiro gênero
+                            ? genero.genres().get(0)
                             : "Desconhecido";
+                    String urlImg = item.getTrack().getAlbum().getImages().get(0).getUrl();
 
-
-
-
-                    return new MusicaSimplesDto(nomeMusica, artista, spotifyId,artistaId,generoString);
+                    return new MusicaSimplesDto(nomeMusica, artista, spotifyId,artistaId,generoString,urlImg);
                 })
                 .filter(Objects::nonNull)
                 .toList();
@@ -122,8 +126,9 @@ public class SpotifyMusicasRecentesService {
         try {
             String letra = geniusLyricsClient.fetchLyrics(musica.getArtista(), musica.getTitulo());
             musica.setLetra(letra);
-            AnaliseMusica analise = huggingFaceZeroShotService.analisarMusica(musica);
-            musica.setAnalise(analise);
+//            AnaliseMusica analise = huggingFaceZeroShotService.analisarMusica(musica);
+//            analiseMusicaRepository.save(analise);
+//            musica.setAnalise(analise);
         } catch (LetraMusicaNaoEncontradaGenius e) {
             musica.setLetra("Letra não disponível");
             musica.setAnalise(null);

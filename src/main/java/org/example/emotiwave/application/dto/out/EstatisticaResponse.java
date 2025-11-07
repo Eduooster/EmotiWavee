@@ -1,5 +1,6 @@
 package org.example.emotiwave.application.dto.out;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public record EstatisticaResponse(
@@ -7,5 +8,16 @@ public record EstatisticaResponse(
         Double mediaScore,
         String sentimento_predominante,
         String intensidade_predominante,
-        Integer total_musicas_analisadas) {
+        Integer total_musicas_analisadas,
+        PolaridadePercentual polaridade
+) {
+
+    public record PolaridadePercentual(
+            BigDecimal positivo,
+            BigDecimal negativo,
+            BigDecimal neutro
+    ){
+
+
+    }
 }

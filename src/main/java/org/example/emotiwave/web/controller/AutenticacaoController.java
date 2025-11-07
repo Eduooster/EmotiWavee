@@ -9,7 +9,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.example.emotiwave.application.dto.in.DadosAuthRequestDto;
+import org.example.emotiwave.application.dto.in.UsuarioCreateRequestDto;
 import org.example.emotiwave.application.dto.out.DadosTokenJwtResponseDto;
+import org.example.emotiwave.application.dto.out.UsuarioDetailResponseDto;
 import org.example.emotiwave.application.service.AutenticacaoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping({"/auth"})
@@ -56,5 +61,11 @@ public class AutenticacaoController {
     public ResponseEntity efetuarAutenticacao(@RequestBody @Valid DadosAuthRequestDto dados) {
         String tokenJWT = this.autenticacaoService.autenticar(dados);
         return ResponseEntity.ok(new DadosTokenJwtResponseDto(tokenJWT));
+    }
+
+    public ResponseEntity<UsuarioDetailResponseDto> criar(@RequestBody @Valid UsuarioCreateRequestDto dto, UriComponentsBuilder uriBuilder) {
+        UsuarioDetailResponseDto cadastroNovoUsuario = autenticacaoService.registrar(dto);
+        URI uri = uriBuilder.path("/usuario/{id}").buildAndExpand(new Object[]{cadastroNovoUsuario.id()}).toUri();
+        return ResponseEntity.created(uri).body(cadastroNovoUsuario);
     }
 }

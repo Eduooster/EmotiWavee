@@ -19,10 +19,10 @@ public interface UsuarioMusicaRepository extends JpaRepository<UsuarioMusica, Lo
 
     UsuarioMusica findByUsuarioId(Long id);
 
-    @Query("    SELECT\n       new org.example.emotiwave.application.dto.in.MusicaSimplesDto(\n            m.titulo,\n            m.artista,\n            m.spotifyTrackId,\n            m.artistaId,\n            m.genero\n\n        )\n    FROM UsuarioMusica um\n    JOIN um.musica m\n    GROUP BY\n        m.titulo, m.artista, m.spotifyTrackId,m.artistaId, m.genero\n    ORDER BY\n        COUNT(um.usuario.id) DESC\n")
+    @Query("    SELECT\n       new org.example.emotiwave.application.dto.in.MusicaSimplesDto(m.urlImg ,\n       m.titulo,\n            m.artista,\n            m.spotifyTrackId,\n            m.artistaId,\n            m.genero\n \n        )\n    FROM UsuarioMusica um\n    JOIN um.musica m\n    GROUP BY\n        m.titulo, m.artista, m.spotifyTrackId,m.artistaId, m.genero\n    ORDER BY\n        COUNT(um.usuario.id) DESC\n")
     Page<MusicaSimplesDto> findMusicasMaisOuvidas(Pageable pageable);
 
-    @Query("    SELECT\n   new org.example.emotiwave.application.dto.in.MusicaSimplesDto(\n        m.titulo,\n        m.artista,\n        m.spotifyTrackId,\n        m.artistaId,\n        m.genero\n\n    )\nFROM UsuarioMusica um\nJOIN um.musica m\nWHERE um.usuario = :usuario and um.ouvidaEm = current_date\nORDER BY\n    um.ouvidaEm desc\n\n\n")
+    @Query("    SELECT\n   new org.example.emotiwave.application.dto.in.MusicaSimplesDto(\n        m.titulo,\n        m.artista,\n        m.spotifyTrackId,\n        m.artistaId,\n        m.genero,\n m.urlImg     )\nFROM UsuarioMusica um\nJOIN um.musica m\nWHERE um.usuario = :usuario and um.ouvidaEm = current_date\nORDER BY\n    um.ouvidaEm desc\n\n\n")
     List<MusicaSimplesDto> findMusicasOuvidasHoje(@Param("usuario") Usuario usuario, Pageable pageable);
 
     List<UsuarioMusica> findByUsuarioAndOuvidaEmAndSelecionadaTrue(Usuario usuario, LocalDate ouvidaEm);
@@ -34,6 +34,17 @@ public interface UsuarioMusicaRepository extends JpaRepository<UsuarioMusica, Lo
     UsuarioMusica findByUsuarioIdAndMusicaSpotifyTrackId(Long usuarioId, String spotifyTrackId);
 
     List<UsuarioMusica> findByUsuarioAndOuvidaEm(Usuario usuario, LocalDate diaSolicitado);
+
+    @Query("""
+    SELECT um.musica 
+    FROM UsuarioMusica um
+    WHERE um.usuario.id = :usuarioId
+      AND um.ouvidaEm = :dataHoje
+""")
+    List<Musica> findMusicasOuvidasHoje(
+            @Param("usuarioId") Long usuarioId,
+            @Param("dataHoje") LocalDate dataHoje
+    );
 
     @Query("""
     SELECT um.musica 

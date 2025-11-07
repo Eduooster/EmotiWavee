@@ -87,7 +87,7 @@ public class AnaliseMusicaService {
         if (analise.getScore().compareTo(new BigDecimal("0.60")) >= 0) {
             analise.setIntensidade("ALTA");
         } else if (analise.getScore().compareTo(new BigDecimal("0.30")) >= 0) {
-            analise.setIntensidade("MEDIA");
+            analise.setIntensidade("EQUILIBRADO");
         } else {
             analise.setIntensidade("BAIXA");
         }

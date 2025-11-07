@@ -38,23 +38,73 @@ public class SpotifyClient {
     }
 
     public String construirAutorizacao(String authHeader) {
+        System.out.println("➡️ [SpotifyService] Iniciando construção da URL de autorização...");
+
         String jwt = authHeader.replace("Bearer ", "");
-        return UriComponentsBuilder.fromHttpUrl("https://accounts.spotify.com/authorize").queryParam("client_id", new Object[]{this.clientId}).queryParam("response_type", new Object[]{"code"}).queryParam("redirect_uri", new Object[]{"http://127.0.0.1:8080/spotify/callback"}).queryParam("scope", new Object[]{"user-top-read user-read-private user-read-recently-played"}).queryParam("state", new Object[]{jwt}).build().toUriString();
+        System.out.println("🔹 Token JWT recebido: " + jwt);
+
+        String url = UriComponentsBuilder
+                .fromHttpUrl("https://accounts.spotify.com/authorize")
+                .queryParam("client_id", clientId)
+                .queryParam("response_type", "code")
+                .queryParam("redirect_uri", "http://127.0.0.1:8080/spotify/callback")
+                .queryParam("scope", "user-top-read user-read-private user-read-recently-played")
+                .queryParam("state", jwt)
+                .build()
+                .toUriString();
+
+        System.out.println("✅ [SpotifyService] URL de autorização construída com sucesso:");
+        System.out.println("👉 " + url);
+
+        return url;
     }
 
     public AccessTokenResponseDto exchangeCodeForTokens(String code) {
+        System.out.println("➡️ [SpotifyService] Iniciando troca de código por tokens...");
+        System.out.println("🔹 Código recebido: " + code);
+
         try {
-            String basicAuth = Base64.getEncoder().encodeToString((this.clientId + ":" + this.secret).getBytes(StandardCharsets.UTF_8));
-            MultiValueMap<String, String> formData = new LinkedMultiValueMap();
+            String basicAuth = Base64.getEncoder()
+                    .encodeToString((clientId + ":" + secret).getBytes(StandardCharsets.UTF_8));
+            System.out.println("🔐 Basic Auth gerado com base no client_id e secret.");
+
+            MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
             formData.add("grant_type", "authorization_code");
             formData.add("code", code);
             formData.add("redirect_uri", "http://127.0.0.1:8080/spotify/callback");
-            WebClient webClient = WebClient.builder().baseUrl("https://accounts.spotify.com").exchangeStrategies(ExchangeStrategies.builder().codecs((configurer) -> configurer.defaultCodecs().maxInMemorySize(Integer.MAX_VALUE)).build()).build();
-            return (AccessTokenResponseDto)((WebClient.RequestBodySpec)((WebClient.RequestBodySpec)webClient.post().uri("/api/token", new Object[0])).header("Authorization", new String[]{"Basic " + basicAuth})).contentType(MediaType.APPLICATION_FORM_URLENCODED).bodyValue(formData).retrieve().bodyToMono(AccessTokenResponseDto.class).block();
-        } catch (FalhaAoPegarTokenAcess e) {
+
+            System.out.println("📦 Corpo da requisição montado:");
+            formData.forEach((k, v) -> System.out.println("   " + k + " = " + v));
+
+            WebClient webClient = WebClient.builder()
+                    .baseUrl("https://accounts.spotify.com")
+                    .exchangeStrategies(ExchangeStrategies.builder()
+                            .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(Integer.MAX_VALUE))
+                            .build())
+                    .build();
+
+            System.out.println("🌐 Enviando requisição para o Spotify...");
+
+            AccessTokenResponseDto response = webClient.post()
+                    .uri("/api/token")
+                    .header("Authorization", "Basic " + basicAuth)
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .bodyValue(formData)
+                    .retrieve()
+                    .bodyToMono(AccessTokenResponseDto.class)
+                    .block();
+
+
+
+            return response;
+
+        } catch (Exception e) {
+            System.out.println("❌ [SpotifyService] ERRO ao trocar código por tokens:");
+            e.printStackTrace();
             throw new RuntimeException("Erro ao trocar código por tokens do Spotify", e);
         }
     }
+
 
     public AccessTokenResponseDto refreshAccessToken(Usuario usuario) {
         try {

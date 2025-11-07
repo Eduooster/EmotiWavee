@@ -63,7 +63,8 @@ public class TopMusicasSpotifyService {
                     GeneroMusicaSpotifyDto genero = this.spotifyService.getGeneros(track.getArtistsIds(), usuario, new ParameterizedTypeReference<GeneroMusicaSpotifyDto>() {
                     }, (Long)null, this.SPOTIFY_ARTIST_URL);
                     String generoString = genero != null && !genero.genres().isEmpty() ? (String)genero.genres().get(0) : "Desconhecido";
-                    topMusicas.add(new MusicaSimplesDto(track.getName(), track.getArtistsNames(), track.getId(), artistaId, generoString));
+
+                    topMusicas.add(new MusicaSimplesDto(track.getName(), track.getArtistsNames(), track.getId(), artistaId, generoString,track.getAlbum().getImages().get(0).getUrl()));
                 }
             }
         }
