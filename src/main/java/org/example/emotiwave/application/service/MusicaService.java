@@ -36,18 +36,21 @@ public class MusicaService {
     }
 
     public Page<MusicaSimplesDto> listarMusicasMaisOuvidas(Pageable paginacao) {
-        return this.usuarioMusicaRepository.findMusicasMaisOuvidas(paginacao);
+
+        return usuarioMusicaRepository.findMusicasMaisOuvidas(paginacao);
     }
+
 
     public Musica buscarMusica(String artista, String titulo) {
         Musica musicaRepo = this.musicaRepository.findByArtistaAndTitulo(artista, titulo);
-        if (musicaRepo == null) {
+        if (musicaRepo == null)
             throw new MusicaSpotifyNaoEncontrada("Falha na busca de musica");
-        } else {
-            return musicaRepo;
-        }
+        return musicaRepo;
     }
 
 
+    public Page<MusicaSimplesDto> listarMusicasRelaxantes(Pageable paginacao) {
+        return musicaRepository.findByPolaridade("POSITIVO",paginacao).map(m->musicaMapper.toDto(m));
+    }
 }
 

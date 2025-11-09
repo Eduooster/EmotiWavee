@@ -63,6 +63,7 @@ public class AutenticacaoController {
         return ResponseEntity.ok(new DadosTokenJwtResponseDto(tokenJWT));
     }
 
+    @PostMapping("/register")
     public ResponseEntity<UsuarioDetailResponseDto> criar(@RequestBody @Valid UsuarioCreateRequestDto dto, UriComponentsBuilder uriBuilder) {
         UsuarioDetailResponseDto cadastroNovoUsuario = autenticacaoService.registrar(dto);
         URI uri = uriBuilder.path("/usuario/{id}").buildAndExpand(new Object[]{cadastroNovoUsuario.id()}).toUri();

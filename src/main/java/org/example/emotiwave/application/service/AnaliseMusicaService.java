@@ -3,6 +3,7 @@ package org.example.emotiwave.application.service;
 
 import jakarta.transaction.Transactional;
 import org.example.emotiwave.application.dto.in.AnaliseEmocional;
+import org.example.emotiwave.application.dto.out.EstatisticaResponse;
 import org.example.emotiwave.domain.entities.AnaliseMusica;
 import org.example.emotiwave.domain.entities.Musica;
 import org.example.emotiwave.domain.entities.Usuario;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -91,6 +93,20 @@ public class AnaliseMusicaService {
         } else {
             analise.setIntensidade("BAIXA");
         }
+    }
+
+    public EstatisticaResponse gerarEstatistica(Usuario usuario, LocalDate inicio, LocalDate fim) {
+        Double mediaScore = analiseMusicaRepository.buscarMediaScore(usuario.getId(), inicio, fim);
+        Integer total = analiseMusicaRepository.contarMusicas(usuario.getId(), inicio, fim);
+        String polaridade = analiseMusicaRepository.buscarPolaridadePredominante(usuario.getId(), inicio, fim);
+        String sentimento = analiseMusicaRepository.buscarSentimentoPredominante(usuario.getId(), inicio, fim);
+        String intensidade = analiseMusicaRepository.buscarIntensidadePredominante(usuario.getId(), inicio, fim);
+        EstatisticaResponse.PolaridadePercentual polaridade_predominante =analiseMusicaRepository.calcularPercentualPolaridade(usuario.getId(),inicio,fim);
+
+        return new EstatisticaResponse(polaridade, mediaScore, sentimento, intensidade, total,polaridade_predominante);
+
+
+
     }
 
 }

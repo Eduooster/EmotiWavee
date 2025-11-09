@@ -15,6 +15,7 @@ import org.example.emotiwave.domain.entities.UsuarioMusica;
 import org.example.emotiwave.domain.exceptions.MusicaNaoEcontrada;
 import org.example.emotiwave.infra.repository.MusicaRepository;
 import org.example.emotiwave.infra.repository.UsuarioMusicaRepository;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -55,5 +56,9 @@ public class UsuarioMusicaService {
         return usuarioMusicaRepository.findMusicasOuvidasHoje(usuario.getId(),LocalDate.now()).stream().map(
                 musicaMapper::toDto).collect(Collectors.toList());
 
+    }
+
+    public List<MusicaSimplesDto> musicasRecemOuvidas(Pageable paginacao, Usuario usuario) {
+        return (List)this.usuarioMusicaRepository.findByUsuarioAndOuvidaEmAndSelecionadaTrue(usuario, LocalDate.now()).stream().map((um) -> new MusicaSimplesDto(um.getMusica().getTitulo(), um.getMusica().getArtista(), um.getMusica().getSpotifyTrackId(), um.getMusica().getArtistaId(), um.getMusica().getGenero(),um.getMusica().getUrlImg())).collect(Collectors.toList());
     }
 }

@@ -14,5 +14,5 @@ public interface UsuarioMapper {
 
     UsuarioDetailResponseDto toUsuarioDetailsReponseDto(Usuario usuario);
 
-    UsuarioListResponseDto toListaResponseDto(Usuario usuario);
+
 }

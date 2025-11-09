@@ -15,9 +15,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UsuarioMusicaRepository extends JpaRepository<UsuarioMusica, Long> {
-    List<UsuarioMusica> findByUsuario(Usuario usuario);
-
-    UsuarioMusica findByUsuarioId(Long id);
 
     @Query("    SELECT\n       new org.example.emotiwave.application.dto.in.MusicaSimplesDto(m.urlImg ,\n       m.titulo,\n            m.artista,\n            m.spotifyTrackId,\n            m.artistaId,\n            m.genero\n \n        )\n    FROM UsuarioMusica um\n    JOIN um.musica m\n    GROUP BY\n        m.titulo, m.artista, m.spotifyTrackId,m.artistaId, m.genero\n    ORDER BY\n        COUNT(um.usuario.id) DESC\n")
     Page<MusicaSimplesDto> findMusicasMaisOuvidas(Pageable pageable);
@@ -33,7 +30,7 @@ public interface UsuarioMusicaRepository extends JpaRepository<UsuarioMusica, Lo
 
     UsuarioMusica findByUsuarioIdAndMusicaSpotifyTrackId(Long usuarioId, String spotifyTrackId);
 
-    List<UsuarioMusica> findByUsuarioAndOuvidaEm(Usuario usuario, LocalDate diaSolicitado);
+
 
     @Query("""
     SELECT um.musica 

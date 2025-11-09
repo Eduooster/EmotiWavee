@@ -5,8 +5,8 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.6</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <version>3.5.7</version>
+        <relativePath/>
     </parent>
     <groupId>org.example</groupId>
     <artifactId>EmotiWave</artifactId>
@@ -63,11 +63,15 @@
             <artifactId>java-jwt</artifactId>
             <version>4.2.1</version>
         </dependency>
+
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.7.0</version> <!-- ou superior -->
+            <version>2.6.0</version>
         </dependency>
+
+
+
 
 
         <!-- Jsoup para parsing do HTML -->
@@ -85,7 +89,11 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.7.0</version> <!-- ou superior -->
+            <version>2.8.14</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-hateoas</artifactId>
         </dependency>
 
 
@@ -112,6 +120,10 @@
             <artifactId>ojdbc11</artifactId>
             <scope>runtime</scope>
         </dependency>
+
+
+
+
     </dependencies>
 
     <build>

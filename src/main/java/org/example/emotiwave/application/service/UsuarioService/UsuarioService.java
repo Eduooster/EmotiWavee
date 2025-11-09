@@ -34,32 +34,4 @@ public class UsuarioService {
 
 
 
-    public Page<UsuarioDetailResponseDto> listar(Pageable pageable) {
-        return usuarioRepository
-                .findByDeletedFalse(pageable)
-                .map(usuarioMapper::toUsuarioDetailsReponseDto);
-    }
-
-    public UsuarioDetailResponseDto excluir(Long id) {
-
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new UsuarioNaoEncontrado("Id usuário inexistente"));
-
-        usuario.setDeleted(true);
-
-        usuarioRepository.save(usuario);
-
-
-        return usuarioMapper.toUsuarioDetailsReponseDto(usuario);
-
-    }
-
-    public UsuarioDetailResponseDto buscarPorId(Long id) {
-        Usuario usuario = usuarioRepository
-                .findById(id).orElseThrow(()-> new UsuarioNaoEncontrado("Usuario não encontrado!"));
-
-        return usuarioMapper.toUsuarioDetailsReponseDto(usuario);
-    }
-
-
 }
