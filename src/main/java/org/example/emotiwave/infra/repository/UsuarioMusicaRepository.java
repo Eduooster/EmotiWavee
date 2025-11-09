@@ -2,6 +2,8 @@ package org.example.emotiwave.infra.repository;
 
 import java.time.LocalDate;
 import java.util.List;
+
+import io.micrometer.common.KeyValues;
 import org.example.emotiwave.application.dto.in.MusicaSimplesDto;
 import org.example.emotiwave.domain.entities.Musica;
 import org.example.emotiwave.domain.entities.Usuario;
@@ -22,7 +24,7 @@ public interface UsuarioMusicaRepository extends JpaRepository<UsuarioMusica, Lo
     @Query("    SELECT\n   new org.example.emotiwave.application.dto.in.MusicaSimplesDto(\n        m.titulo,\n        m.artista,\n        m.spotifyTrackId,\n        m.artistaId,\n        m.genero,\n m.urlImg     )\nFROM UsuarioMusica um\nJOIN um.musica m\nWHERE um.usuario = :usuario and um.ouvidaEm = current_date\nORDER BY\n    um.ouvidaEm desc\n\n\n")
     List<MusicaSimplesDto> findMusicasOuvidasHoje(@Param("usuario") Usuario usuario, Pageable pageable);
 
-    List<UsuarioMusica> findByUsuarioAndOuvidaEmAndSelecionadaTrue(Usuario usuario, LocalDate ouvidaEm);
+    Page<UsuarioMusica> findByUsuarioAndOuvidaEmAndSelecionadaTrue(Usuario usuario, LocalDate ouvidaEm, Pageable paginacao);
 
     UsuarioMusica findByMusica_SpotifyTrackIdAndUsuarioId(String spotifyTrackId, Long usuarioId);
 
@@ -40,7 +42,8 @@ public interface UsuarioMusicaRepository extends JpaRepository<UsuarioMusica, Lo
 """)
     List<Musica> findMusicasOuvidasHoje(
             @Param("usuarioId") Long usuarioId,
-            @Param("dataHoje") LocalDate dataHoje
+            @Param("dataHoje") LocalDate dataHoje,
+            Pageable pageable
     );
 
     @Query("""
@@ -48,6 +51,15 @@ public interface UsuarioMusicaRepository extends JpaRepository<UsuarioMusica, Lo
     FROM UsuarioMusica um 
     WHERE um.usuario.id = :userId
 """)
-    List<Musica> findMusicasByUsuarioId(@Param("userId") Long userId);
+    Page<Musica> findMusicasByUsuarioId(@Param("userId") Long userId,Pageable pageable);
+
+    @Query("""
+    SELECT um.musica 
+    FROM UsuarioMusica um 
+    WHERE um.usuario.id = :userId
+""")
+    List<Musica> findMusicasByUsuarioIdv2(@Param("userId") Long userId);
+
+
 }
 

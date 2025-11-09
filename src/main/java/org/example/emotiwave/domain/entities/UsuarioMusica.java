@@ -33,7 +33,7 @@ public class UsuarioMusica {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Musica musica;
 
-    private Preferencia selecionada;
+    private boolean selecionada;
 
     private LocalDate ouvidaEm;
 

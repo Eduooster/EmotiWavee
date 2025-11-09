@@ -126,9 +126,7 @@ public class SpotifyMusicasRecentesService {
         try {
             String letra = geniusLyricsClient.fetchLyrics(musica.getArtista(), musica.getTitulo());
             musica.setLetra(letra);
-//            AnaliseMusica analise = huggingFaceZeroShotService.analisarMusica(musica);
-//            analiseMusicaRepository.save(analise);
-//            musica.setAnalise(analise);
+
         } catch (LetraMusicaNaoEncontradaGenius e) {
             musica.setLetra("Letra não disponível");
             musica.setAnalise(null);
@@ -156,6 +154,7 @@ public class SpotifyMusicasRecentesService {
 
             if (usuarioMusica != null) {
                 usuarioMusica.setOuvidaEm(LocalDate.now());
+                usuarioMusica.setSelecionada(true);
                 usuarioMusicaRepository.save(usuarioMusica);
                 continue;
             }
@@ -173,6 +172,7 @@ public class SpotifyMusicasRecentesService {
             novaAssociacao.setUsuario(usuario);
             novaAssociacao.setMusica(musica);
             novaAssociacao.setOuvidaEm(LocalDate.now());
+            novaAssociacao.setSelecionada(true);
 
             novaAssociacao.setFonte(FonteMusica.SPOTIFY);
 

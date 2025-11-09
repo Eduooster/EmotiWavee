@@ -1,0 +1,92 @@
+### Autenticação do usuário
+POST http://localhost:8080/
+Content-Type: application/json
+
+{
+  "username": "usuarioExemplo",
+  "password": "senhaExemplo"
+}
+
+### Registro de novo usuário
+POST http://localhost:8080/register
+Content-Type: application/json
+
+{
+  "username": "novoUsuario",
+  "password": "senhaSegura",
+  "email": "usuario@exemplo.com"
+}
+
+
+### Obter estatísticas do usuário
+GET http://localhost:8080/estatisticas?inicio=2025-11-01&fim=2025-11-09
+Authorization: Bearer {{token}}
+
+
+### Salvar preferências musicais do usuário
+POST http://localhost:8080/usuarios/musicas/preferenciasv
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "musicas": [
+    {"spotifyTrackId": "123", "titulo": "Musica A", "artista": "Artista A"},
+    {"spotifyTrackId": "456", "titulo": "Musica B", "artista": "Artista B"}
+  ]
+}
+
+### Listar top músicas do usuário via Spotify
+GET http://localhost:8080/usuarios/musicas/spotify/top
+Authorization: Bearer {{token}}
+
+### Listar músicas recentes do usuário via Spotify (HATEOAS)
+GET http://localhost:8080/usuarios/musicas/spotify/recentes
+Authorization: Bearer {{token}}
+
+### Listar músicas recentes do usuário sem Spotify
+GET http://localhost:8080/usuarios/musicas/recentes
+Authorization: Bearer {{token}}
+
+### Listar músicas ouvidas recentemente (paginado)
+GET http://localhost:8080/usuarios/musicas?page=0&size=10
+Authorization: Bearer {{token}}
+
+### Listar músicas relaxantes recomendadas
+GET http://localhost:8080/usuarios/musicas/relaxantes?page=0&size=10
+Authorization: Bearer {{token}}
+
+### Desvincular música do usuário
+DELETE http://localhost:8080/usuarios/musicas/preferencias/123
+Authorization: Bearer {{token}}
+
+### Marcar música como selecionada pelo usuário
+PATCH http://localhost:8080/usuarios/musicas/preferencias/musica/123
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "selecionada": true
+}
+
+
+### Analisar músicas
+PATCH http://localhost:8080/analisar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1,
+  "titulo": "Nome da música",
+  "artista": "Nome do artista"
+}
+
+### Listar músicas mais ouvidas
+GET http://localhost:8080/top
+Authorization: Bearer {{token}}
+
+
+### Buscar música no Spotify
+GET http://localhost:8080/spotify/buscar?artista=ArtistaExemplo&titulo=TituloExemplo
+Authorization: Bearer {{token}}
+
+

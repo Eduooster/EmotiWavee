@@ -2,6 +2,7 @@ package org.example.emotiwave.application.service.usuarioMusicaServices;
 
 
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,6 +16,7 @@ import org.example.emotiwave.domain.entities.UsuarioMusica;
 import org.example.emotiwave.domain.exceptions.MusicaNaoEcontrada;
 import org.example.emotiwave.infra.repository.MusicaRepository;
 import org.example.emotiwave.infra.repository.UsuarioMusicaRepository;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -52,13 +54,24 @@ public class UsuarioMusicaService {
 
     }
 
-    public List<MusicaSimplesDto> pegarMusicasRecentes(Usuario usuario) {
-        return usuarioMusicaRepository.findMusicasOuvidasHoje(usuario.getId(),LocalDate.now()).stream().map(
+    public List<MusicaSimplesDto> pegarMusicasRecentes(Usuario usuario,Pageable pageable) throws IOException, InterruptedException {
+        return usuarioMusicaRepository.findMusicasOuvidasHoje(usuario.getId(),LocalDate.now(),pageable).stream().map(
                 musicaMapper::toDto).collect(Collectors.toList());
 
     }
 
-    public List<MusicaSimplesDto> musicasRecemOuvidas(Pageable paginacao, Usuario usuario) {
-        return (List)this.usuarioMusicaRepository.findByUsuarioAndOuvidaEmAndSelecionadaTrue(usuario, LocalDate.now()).stream().map((um) -> new MusicaSimplesDto(um.getMusica().getTitulo(), um.getMusica().getArtista(), um.getMusica().getSpotifyTrackId(), um.getMusica().getArtistaId(), um.getMusica().getGenero(),um.getMusica().getUrlImg())).collect(Collectors.toList());
+    public Page<MusicaSimplesDto> musicasRecemOuvidas(Pageable paginacao, Usuario usuario) {
+        Page<UsuarioMusica> page = usuarioMusicaRepository.findByUsuarioAndOuvidaEmAndSelecionadaTrue(usuario, LocalDate.now(), paginacao);
+
+
+        return page.map(um -> new MusicaSimplesDto(
+                um.getMusica().getTitulo(),
+                um.getMusica().getArtista(),
+                um.getMusica().getSpotifyTrackId(),
+                um.getMusica().getArtistaId(),
+                um.getMusica().getGenero(),
+                um.getMusica().getUrlImg()
+        ));
     }
+
 }

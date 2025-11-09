@@ -57,7 +57,7 @@ public class UsuarioMusicaController {
             summary = "Salvar preferências musicais do usuário",
             description = "Registra as músicas selecionadas pelo usuário sem spotify, criando ou atualizando os relacionamentos no banco de dados entre usuário e música."
     )
-    @PostMapping({"/musicas/preferenciasv"})
+    @PostMapping({"/musicas/preferencias"})
     public ResponseEntity salvarPreferenciasMusicais(@AuthenticationPrincipal Usuario usuario, @RequestBody MusicasSelecionadasDto musicasSelecionadasDto) {
         this.relacionarMusicasOuvidasAoUsuario.processarRelacionamentos(musicasSelecionadasDto, usuario);
         return ResponseEntity.noContent().build();
@@ -68,22 +68,100 @@ public class UsuarioMusicaController {
             summary = "Listar top músicas do usuário via Spotify",
             description = "Busca as músicas mais ouvidas pelo usuário através da integração com Spotify e retorna a lista de forma paginada, registrando os dados no banco quando necessário."
     )
-    @GetMapping({"/musicas/spotify/top"})
-    public ResponseEntity userTopRead(@AuthenticationPrincipal Usuario usuario) {
+    @GetMapping({"/musicas/spotify/topv1"})
+    public ResponseEntity userTopReadv1(@AuthenticationPrincipal Usuario usuario) {
         List<MusicaSimplesDto> response = this.topMusicasSpotifyService.buscarTopMusicasSpotify(usuario);
         return ResponseEntity.ok(response);
     }
+
+    @Operation(
+            summary = "Listar top músicas do usuário via Spotify",
+            description = "Busca as músicas mais ouvidas pelo usuário através da integração com Spotify e retorna a lista com links HATEOAS para ações relacionadas."
+    )
+    @GetMapping("/musicas/spotify/top")
+    public ResponseEntity<CollectionModel<EntityModel<MusicaSimplesDto>>> userTopRead(
+            @AuthenticationPrincipal Usuario usuario) throws IOException, InterruptedException {
+
+        List<MusicaSimplesDto> musicas = topMusicasSpotifyService.buscarTopMusicasSpotify(usuario);
+
+        if (musicas == null || musicas.isEmpty()) {
+            return ResponseEntity.ok(CollectionModel.empty());
+        }
+
+        List<EntityModel<MusicaSimplesDto>> musicasModel = musicas.stream()
+                .map(musica -> {
+                    try {
+                        return EntityModel.of(
+                                musica,
+
+                                // Link self (para a própria música)
+                                linkTo(methodOn(UsuarioMusicaController.class)
+                                        .userTopRead(usuario))
+                                        .slash(musica.getSpotifyTrackId())
+                                        .withSelfRel(),
+
+                                // Link para salvar preferências
+                                linkTo(methodOn(UsuarioMusicaController.class)
+                                        .salvarPreferenciasMusicais(usuario, null))
+                                        .withRel("salvar-preferencias"),
+
+                                // Link para marcar como selecionada
+                                linkTo(methodOn(UsuarioMusicaController.class)
+                                        .selecionarMusica(usuario, musica.getSpotifyTrackId(), null))
+                                        .withRel("selecionar"),
+
+                                // Link para músicas recentes via Spotify
+                                linkTo(methodOn(UsuarioMusicaController.class)
+                                        .buscaMusicasRecentesSpotify(usuario))
+                                        .withRel("spotify-recentes"),
+
+                                // Link para músicas relaxantes
+                                linkTo(methodOn(UsuarioMusicaController.class)
+                                        .musicasRelaxantes(null, usuario))
+                                        .withRel("musicas-relaxantes"),
+
+                                // Link para análise emocional
+                                linkTo(methodOn(MusicaController.class)
+                                        .analise(null, usuario))
+                                        .withRel("analisar")
+                        );
+                    } catch (IOException | InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .toList();
+
+        // Links de nível de coleção
+        CollectionModel<EntityModel<MusicaSimplesDto>> collectionModel = CollectionModel.of(
+                musicasModel,
+
+                linkTo(methodOn(UsuarioMusicaController.class)
+                        .userTopRead(usuario))
+                        .withSelfRel(),
+
+                linkTo(methodOn(UsuarioMusicaController.class)
+                        .buscaMusicasRecentesSpotify(usuario))
+                        .withRel("spotify-recentes"),
+
+                linkTo(methodOn(UsuarioMusicaController.class)
+                        .musicasRelaxantes(null, usuario))
+                        .withRel("musicas-relaxantes"),
+
+                linkTo(methodOn(UsuarioMusicaController.class)
+                        .salvarPreferenciasMusicais(usuario, null))
+                        .withRel("preferencias")
+        );
+
+        return ResponseEntity.ok(collectionModel);
+    }
+
 
 
     @Operation(
             summary = "Listar músicas recentemente tocadas via Spotify",
             description = "Retorna as músicas que o usuário escutou recentemente no Spotify, chamando a API do Spotify e registrando os dados no banco se necessário."
     )
-    @GetMapping({"/musicas/spotify/recentesv1"})
-    public ResponseEntity buscaMusicasRecentesSpotifyv1(@AuthenticationPrincipal Usuario usuario) throws IOException, InterruptedException {
-        ResponseEntity<List<MusicaSimplesDto>> response = this.spotifyMusicasRecentesService.buscarMusicasOuvidasRecentes(usuario);
-        return ResponseEntity.ok(response);
-    }
+
 
     @GetMapping("/musicas/spotify/recentes")
     public ResponseEntity<CollectionModel<EntityModel<MusicaSimplesDto>>> buscaMusicasRecentesSpotify(
@@ -173,9 +251,9 @@ public class UsuarioMusicaController {
     )
     @GetMapping("/musicas/recentes")
     public ResponseEntity<CollectionModel<EntityModel<MusicaSimplesDto>>> recentes(
-            @AuthenticationPrincipal Usuario usuario) throws IOException, InterruptedException {
+            @AuthenticationPrincipal Usuario usuario, Pageable pageable) throws IOException, InterruptedException {
 
-        List<MusicaSimplesDto> musicas = usuarioMusicaService.pegarMusicasRecentes(usuario);
+        List<MusicaSimplesDto> musicas = usuarioMusicaService.pegarMusicasRecentes(usuario,pageable);
 
 
         List<EntityModel<MusicaSimplesDto>> musicasModel = musicas.stream()
@@ -185,7 +263,7 @@ public class UsuarioMusicaController {
                                 musica,
 
                                 linkTo(methodOn(UsuarioMusicaController.class)
-                                        .recentes(usuario)).withSelfRel(),
+                                        .recentes(usuario,null)).withSelfRel(),
 
 
                                 linkTo(methodOn(UsuarioMusicaController.class)
@@ -203,7 +281,7 @@ public class UsuarioMusicaController {
 
         CollectionModel<EntityModel<MusicaSimplesDto>> collectionModel = CollectionModel.of(
                 musicasModel,
-                linkTo(methodOn(UsuarioMusicaController.class).recentes(usuario)).withSelfRel(),
+                linkTo(methodOn(UsuarioMusicaController.class).recentes(usuario,null)).withSelfRel(),
                 linkTo(methodOn(UsuarioMusicaController.class)
                         .musicasOuvidasRecentemente(null, usuario))
                         .withRel("musicas-recentes-global")
@@ -224,7 +302,7 @@ public class UsuarioMusicaController {
             @AuthenticationPrincipal Usuario usuario) throws IOException, InterruptedException {
 
 
-        List<MusicaSimplesDto> musicas = usuarioMusicaService.musicasRecemOuvidas(paginacao, usuario);
+        Page<MusicaSimplesDto> musicas = usuarioMusicaService.musicasRecemOuvidas(paginacao, usuario);
 
 
         List<EntityModel<MusicaSimplesDto>> musicasModel = musicas.stream()
@@ -376,11 +454,6 @@ public class UsuarioMusicaController {
 
 
 
-//    @PatchMapping({"/musicas/{id}/acao"})
-//    public ResponseEntity favoritar() {
-//        return ResponseEntity.ok().build();
-//    }
-//
 
 
     @Operation(

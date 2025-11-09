@@ -38,9 +38,7 @@ public class SpotifyClient {
     }
 
     public String construirAutorizacao(String authHeader) {
-        System.out.println("➡️ [SpotifyService] Iniciando construção da URL de autorização...");
-
-        String jwt = authHeader.replace("Bearer ", "");
+        String jwt = authHeader.replace("Bearer ", "").trim();
         System.out.println("🔹 Token JWT recebido: " + jwt);
 
         String url = UriComponentsBuilder
@@ -50,8 +48,11 @@ public class SpotifyClient {
                 .queryParam("redirect_uri", "http://127.0.0.1:8080/spotify/callback")
                 .queryParam("scope", "user-top-read user-read-private user-read-recently-played")
                 .queryParam("state", jwt)
-                .build()
+                .encode() // 🔥 garante encoding correto
                 .toUriString();
+
+        System.out.println("✅ [SpotifyService] URL construída:");
+        System.out.println("👉 " + url);
 
         System.out.println("✅ [SpotifyService] URL de autorização construída com sucesso:");
         System.out.println("👉 " + url);

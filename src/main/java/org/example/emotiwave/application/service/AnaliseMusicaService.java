@@ -10,6 +10,8 @@ import org.example.emotiwave.domain.entities.Usuario;
 import org.example.emotiwave.infra.repository.AnaliseMusicaRepository;
 import org.example.emotiwave.infra.repository.MusicaRepository;
 import org.example.emotiwave.infra.repository.UsuarioMusicaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -53,7 +55,7 @@ public class AnaliseMusicaService {
 
     @Transactional
     public void analisarMusicas(Usuario usuario) {
-        List<Musica> musicas = usuarioMusicaRepository.findMusicasByUsuarioId(usuario.getId());
+        List<Musica> musicas = usuarioMusicaRepository.findMusicasByUsuarioIdv2(usuario.getId());
 
         musicas.forEach(musica -> {
             if (musica.getAnalise() == null) {
