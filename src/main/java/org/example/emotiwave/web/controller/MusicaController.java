@@ -30,7 +30,15 @@ public class MusicaController {
         this.musicaService = musicaService;
         this.analiseMusicaService = analiseMusicaService;
     }
-
+    @Operation(
+            summary = "Analisar músicas do usuário",
+            description = "Executa a análise emocional das músicas do usuário e atualiza os registros correspondentes no sistema."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Análise realizada com sucesso, sem conteúdo retornado"),
+            @ApiResponse(responseCode = "400", description = "Requisição inválida"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor durante a análise")
+    })
     @PatchMapping("/analisar")
     public ResponseEntity analise( Musica musica,@AuthenticationPrincipal Usuario usuario) {
             analiseMusicaService.analisarMusicas(usuario);

@@ -63,6 +63,16 @@ public class AutenticacaoController {
         return ResponseEntity.ok(new DadosTokenJwtResponseDto(tokenJWT));
     }
 
+    @Operation(
+            summary = "Registrar novo usuário",
+            description = "Cria um novo usuário no sistema e retorna os detalhes do cadastro."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados de requisição inválidos"),
+            @ApiResponse(responseCode = "409", description = "Usuário já existe"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @PostMapping("/register")
     public ResponseEntity<UsuarioDetailResponseDto> criar(@RequestBody @Valid UsuarioCreateRequestDto dto, UriComponentsBuilder uriBuilder) {
         UsuarioDetailResponseDto cadastroNovoUsuario = autenticacaoService.registrar(dto);

@@ -2,6 +2,9 @@ package org.example.emotiwave.web.controller;
 
 
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.time.LocalDate;
@@ -40,7 +43,16 @@ public class UsuarioController {
         this.analiseMusicaService = analiseMusicaService;
     }
 
-
+    @Operation(
+            summary = "Obter estatísticas de músicas",
+            description = "Retorna estatísticas das músicas do usuário dentro de um período específico. Se não for informado, retorna estatísticas gerais."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Estatísticas retornadas com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Parâmetros de data inválidos"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @GetMapping("/estatisticas")
     public ResponseEntity<EstatisticaResponse> getEstatisticas(
             @AuthenticationPrincipal Usuario usuario,

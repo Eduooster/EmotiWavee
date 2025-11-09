@@ -162,7 +162,6 @@ public class UsuarioMusicaController {
             description = "Retorna as músicas que o usuário escutou recentemente no Spotify, chamando a API do Spotify e registrando os dados no banco se necessário."
     )
 
-
     @GetMapping("/musicas/spotify/recentes")
     public ResponseEntity<CollectionModel<EntityModel<MusicaSimplesDto>>> buscaMusicasRecentesSpotify(
             @AuthenticationPrincipal Usuario usuario) throws IOException, InterruptedException {
